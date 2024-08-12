@@ -8,8 +8,8 @@ function GameBoard() {
   const speed = 5;
   const [tail, SetTail] = useState([]);
   const [food, setFood] = useState({ x: 200, y: 200 });
-  const [dist, setDist] = useState(0);
 
+  // useEffect koji koristimo radi aktiviranja event listenera koji igraču mijenjaju smjer, handleKeyDown funkciju možemo napisati i van useEffect funkcije i ponašat će se isto.
   useEffect(() => {
     const handleKeyDown = (event) => {
       switch (event.key) {
@@ -46,60 +46,54 @@ function GameBoard() {
         const newX = prevPosition.x + direction.x;
         const newY = prevPosition.y + direction.y;
 
-        if (
-          prevPosition.x < 0 + squareSize / 2 ||
-          prevPosition.x > canvas.width - squareSize
-        ) {
-          setDirection({ x: 0, y: 0 });
-        } else if (
-          prevPosition.y < 0 ||
-          prevPosition.y > canvas.height - squareSize
-        ) {
-          setDirection({ x: 0, y: 0 });
-        }
-        // Clear the canvas
-        context.clearRect(0, 0, canvas.width, canvas.height);
-
-        // Draw the square at the new position
-        context.fillStyle = "green";
-        context.fillRect(newX, newY, squareSize, squareSize);
-
         return { x: newX, y: newY };
       });
+
+      /* If provjere */
+
+      // Provjera jel igrač udario u rub ploče
+      if (
+        position.x < 0 ||
+        position.x > canvas.width - squareSize ||
+        position.y < 0 ||
+        position.y > canvas.height - squareSize
+      ) {
+        return { x: 0, y: 0 };
+      }
+
+      //Provjera jel kocka od igrača preklapa sa kockom hrane
+      if (
+        position.x < food.x + squareSize &&
+        position.x + squareSize > food.x &&
+        position.y < food.y + squareSize &&
+        position.y + squareSize > food.y
+      ) {
+        setFood({
+          x: Math.floor(Math.random() * (canvas.width - squareSize)),
+          y: Math.floor(Math.random() * (canvas.height - squareSize)),
+        });
+      }
     };
 
-    const distance = () => {
-      const x1 = position.x + squareSize / 2;
-      const y1 = position.y + squareSize / 2;
-      const x2 = food.x + squareSize / 2;
-      const y2 = food.y + squareSize / 2;
+    context.clearRect(0, 0, canvas.width, canvas.height);
 
-      const distan = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
-      setDist(distan);
-    };
+    //Igrač
 
-    distance();
+    context.fillStyle = "green";
+    context.fillRect(position.x, position.y, squareSize, squareSize);
 
-    if (dist < 20) {
-      setFood({
-        x: Math.floor(Math.random() * 401),
-        y: Math.floor(Math.random() * 401),
-      });
-    }
+    //Hrana
 
+    const context2 = canvas.getContext("2d");
+
+    context2.fillStyle = "blue";
+    context2.fillRect(food.x, food.y, squareSize, squareSize);
+
+    // Mislio sam da se možda može samo na kraju pozvati funkcija gameLoop() i da će ju dependency list od useEffecta(npr [position]) osvježavati ali zbog prebrzog render aplikacija je počela divljati
     const intervalId = setInterval(gameLoop, 1000 / 10); // 30 FPS
 
     return () => clearInterval(intervalId);
-  }, [direction, position]);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const context2 = canvas.getContext("2d");
-
-    // Draw the square at the new position
-    context2.fillStyle = "blue";
-    context2.fillRect(food.x, food.y, squareSize, squareSize);
-  }, [position]);
+  }, [direction, position, food]);
 
   return (
     <canvas
