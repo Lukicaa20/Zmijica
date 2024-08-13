@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
 
-function GameBoard() {
+function GameBoard({ counter, setCounter }) {
+  //useState varijable
   const canvasRef = useRef(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [direction, setDirection] = useState({ x: 0, y: 0 });
-  const squareSize = 20;
-  const speed = 5;
-  const [tail, SetTail] = useState([]);
+  const [tail, setTail] = useState([]);
   const [food, setFood] = useState({ x: 200, y: 200 });
+
+  //Lokalne varijable
+  const squareSize = 10;
+  const speed = squareSize;
 
   // useEffect koji koristimo radi aktiviranja event listenera koji igraču mijenjaju smjer, handleKeyDown funkciju možemo napisati i van useEffect funkcije i ponašat će se isto.
   useEffect(() => {
@@ -49,6 +52,14 @@ function GameBoard() {
         return { x: newX, y: newY };
       });
 
+      setTail((prevTail) => {
+        const newTail = [{ x: position.x, y: position.y }, ...prevTail];
+        if (newTail.length > counter) {
+          newTail.pop();
+        }
+        return newTail;
+      });
+
       /* If provjere */
 
       // Provjera jel igrač udario u rub ploče
@@ -58,7 +69,10 @@ function GameBoard() {
         position.y < 0 ||
         position.y > canvas.height - squareSize
       ) {
-        return { x: 0, y: 0 };
+        setCounter(0);
+        setDirection({ x: 0, y: 0 });
+        setPosition({ x: 0, y: 0 });
+        setTail([]);
       }
 
       //Provjera jel kocka od igrača preklapa sa kockom hrane
@@ -72,6 +86,9 @@ function GameBoard() {
           x: Math.floor(Math.random() * (canvas.width - squareSize)),
           y: Math.floor(Math.random() * (canvas.height - squareSize)),
         });
+        setCounter((prevCounter) => {
+          return prevCounter + 1;
+        });
       }
     };
 
@@ -84,16 +101,20 @@ function GameBoard() {
 
     //Hrana
 
-    const context2 = canvas.getContext("2d");
+    context.fillStyle = "blue";
+    context.fillRect(food.x, food.y, squareSize, squareSize);
 
-    context2.fillStyle = "blue";
-    context2.fillRect(food.x, food.y, squareSize, squareSize);
+    //Rep
+    context.fillStyle = "lightgreen";
+    tail.forEach((segment) => {
+      context.fillRect(segment.x, segment.y, squareSize, squareSize);
+    });
 
     // Mislio sam da se možda može samo na kraju pozvati funkcija gameLoop() i da će ju dependency list od useEffecta(npr [position]) osvježavati ali zbog prebrzog render aplikacija je počela divljati
-    const intervalId = setInterval(gameLoop, 1000 / 10); // 30 FPS
+    const intervalId = setInterval(gameLoop, 1000 / 20); // 20 FPS
 
     return () => clearInterval(intervalId);
-  }, [direction, position, food]);
+  }, [direction, position, food, tail, counter]);
 
   return (
     <canvas
