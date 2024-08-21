@@ -1,39 +1,84 @@
 import React, { useState, useEffect, useRef } from "react";
 
-function GameBoard({ counter, setCounter }) {
+function GameBoard({ counter, setCounter, checked }) {
+  //Lokalne varijable
+  const squareSize = 10;
+  const speed = squareSize;
+  const canvasSize = 400;
+
   //useState varijable
   const canvasRef = useRef(null);
   const [position, setPosition] = useState({
-    x: 200 - 10 / 2,
-    y: 200 - 10 / 2,
+    x: 200,
+    y: 200,
   });
   const [direction, setDirection] = useState({ x: 0, y: 0 });
   const [tail, setTail] = useState([]);
   const [food, setFood] = useState({ x: 100, y: 100 });
 
-  //Lokalne varijable
-  const squareSize = 10;
-  const speed = squareSize;
+  // useEffect za crtanje grida
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const context = canvas.getContext("2d");
+
+    context.strokeStyle = "#ddd";
+    context.lineWidth = 0;
+
+    for (let x = 0; x <= canvasSize; x += squareSize) {
+      // Vertikalne linije
+      context.beginPath();
+      context.moveTo(x, 0);
+      context.lineTo(x, canvasSize);
+      context.stroke();
+
+      // Horizontalne linije
+      context.beginPath();
+      context.moveTo(0, x);
+      context.lineTo(canvasSize, x);
+      context.stroke();
+    }
+  }, []);
 
   // useEffect koji koristimo radi aktiviranja event listenera koji igraču mijenjaju smjer, handleKeyDown funkciju možemo napisati i van useEffect funkcije i ponašat će se isto.
+
   useEffect(() => {
     const handleKeyDown = (event) => {
-      switch (event.key) {
-        case "ArrowUp":
-          setDirection({ x: 0, y: -speed });
-          break;
-        case "ArrowDown":
-          setDirection({ x: 0, y: speed });
-          break;
-        case "ArrowLeft":
-          setDirection({ x: -speed, y: 0 });
-          break;
-        case "ArrowRight":
-          setDirection({ x: speed, y: 0 });
-          break;
-        default:
-          break;
-      }
+      setDirection((prevDirection) => {
+        let newDirection;
+        switch (event.key) {
+          case "ArrowUp":
+            newDirection = { x: 0, y: -speed };
+            break;
+          case "ArrowDown":
+            newDirection = { x: 0, y: speed };
+            break;
+          case "ArrowLeft":
+            newDirection = { x: -speed, y: 0 };
+            break;
+          case "ArrowRight":
+            newDirection = { x: speed, y: 0 };
+            break;
+          default:
+            return prevDirection;
+        }
+
+        if (
+          tail.length === 1 &&
+          (newDirection.x === -prevDirection.x ||
+            newDirection.y === -prevDirection.y)
+        ) {
+          setTail([]);
+          setCounter(0);
+          setDirection({ x: 0, y: 0 });
+          setPosition({
+            x: 200,
+            y: 200,
+          });
+        }
+
+        return newDirection;
+      });
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -41,7 +86,7 @@ function GameBoard({ counter, setCounter }) {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, []);
+  }, [direction, position]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -52,13 +97,32 @@ function GameBoard({ counter, setCounter }) {
         const newX = prevPosition.x + direction.x;
         const newY = prevPosition.y + direction.y;
 
-        return { x: newX, y: newY };
+        return {
+          x: newX,
+          y: newY,
+        };
       });
 
+      //Ova funkcija je po meni jako zahtjevna jer uvijek newTail.pop spriječava rast repa u nedogled
       setTail((prevTail) => {
         const newTail = [{ x: position.x, y: position.y }, ...prevTail];
         if (newTail.length > counter) {
           newTail.pop();
+        }
+
+        let overlap = newTail.some(
+          (segment) => segment.x === food.x && segment.y === food.y
+        );
+
+        if (overlap) {
+          setFood({
+            x:
+              Math.floor(Math.random() * (canvas.width / squareSize)) *
+              squareSize,
+            y:
+              Math.floor(Math.random() * (canvas.height / squareSize)) *
+              squareSize,
+          });
         }
         return newTail;
       });
@@ -74,8 +138,8 @@ function GameBoard({ counter, setCounter }) {
           setCounter(0);
           setDirection({ x: 0, y: 0 });
           setPosition({
-            x: 200 - 10 / 2,
-            y: 200 - 10 / 2,
+            x: 200,
+            y: 200,
           });
         }
       });
@@ -93,8 +157,8 @@ function GameBoard({ counter, setCounter }) {
       setCounter(0);
       setDirection({ x: 0, y: 0 });
       setPosition({
-        x: 200 - 10 / 2,
-        y: 200 - 10 / 2,
+        x: 200,
+        y: 200,
       });
       setTail([]);
     }
@@ -107,8 +171,9 @@ function GameBoard({ counter, setCounter }) {
       position.y + squareSize > food.y
     ) {
       setFood({
-        x: Math.floor(Math.random() * (canvas.width - squareSize)),
-        y: Math.floor(Math.random() * (canvas.height - squareSize)),
+        x: Math.floor(Math.random() * (canvas.width / squareSize)) * squareSize,
+        y:
+          Math.floor(Math.random() * (canvas.height / squareSize)) * squareSize,
       });
       setCounter((prevCounter) => {
         return prevCounter + 1;
@@ -134,16 +199,21 @@ function GameBoard({ counter, setCounter }) {
     });
 
     // Mislio sam da se možda može samo na kraju pozvati funkcija gameLoop() i da će ju dependency list od useEffecta(npr [position]) osvježavati ali zbog prebrzog render aplikacija je počela divljati
-    const intervalId = setInterval(gameLoop, 1000 / 10); // 20 FPS
 
-    return () => clearInterval(intervalId);
-  }, [direction, position, food, tail, counter]);
+    if (checked) {
+      const intervalId = setInterval(gameLoop, 1000 / 30); // 30 FPS
+      return () => clearInterval(intervalId);
+    } else {
+      const intervalId = setInterval(gameLoop, 1000 / 20); // 20 FPS
+      return () => clearInterval(intervalId);
+    }
+  }, [direction, food, tail, counter]);
 
   return (
     <canvas
       ref={canvasRef}
-      width={400}
-      height={400}
+      width={canvasSize}
+      height={canvasSize}
       style={{ border: "1px solid black", background: "black" }}
     />
   );

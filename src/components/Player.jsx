@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { FaReact } from "react-icons/fa";
+import { Switch } from "@mui/material";
 
-const Player = ({ counter }) => {
+const Player = ({ counter, playerName, setPlayerName, setChecked }) => {
   const [isEditable, setIsEditable] = useState(false);
-  const [playerName, setPlayerName] = useState("Mile");
 
   const handleEditSave = () => {
     setIsEditable((edit) => !edit);
@@ -13,6 +13,10 @@ const Player = ({ counter }) => {
     setPlayerName(e.target.value);
   };
 
+  const handleChecked = () => {
+    setChecked((checked) => !checked);
+  };
+
   return (
     <div className="container">
       <h1>
@@ -20,17 +24,29 @@ const Player = ({ counter }) => {
       </h1>
 
       {isEditable ? (
-        <div>
-          <input type="text" value={playerName} onChange={handleChange} />
-          <button onClick={handleEditSave}>Save</button>
+        <div className="save-div">
+          <input
+            className="input"
+            type="text"
+            value={playerName}
+            onChange={handleChange}
+          />
+          <button className="save-btn" onClick={handleEditSave}>
+            Save
+          </button>
         </div>
       ) : (
-        <div>
-          <p>Player:{playerName}</p>
-          <button onClick={handleEditSave}>Edit</button>
+        <div className="edit-div">
+          <p className="player">Player:{playerName}</p>
+          <button className="edit-btn" onClick={handleEditSave}>
+            Edit
+          </button>
         </div>
       )}
-      <p>Score:{counter}</p>
+      <p className="score">Score:{counter}</p>
+      <p className="hi-score">Hi-score:</p>
+
+      <Switch onChange={handleChecked} />
     </div>
   );
 };
