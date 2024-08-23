@@ -16,5 +16,50 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  margin-bottom: 5rem;
+  margin-bottom: 2rem;
+  margin-top: 1rem;
+  gap: 0.3rem;
+}
+
+.container h1 {
+  margin-bottom: 5px;
+}
+
+/* Save */
+
+.save-div {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.input {
+  border: none;
+  background-color: #eee;
+  border-radius: 15px;
+  padding-left: 10px;
+  width: 150px;
+}
+
+.save-btn {
+  width: 3rem;
+  border-radius: 15px;
+  margin: 0 auto;
+}
+
+/* Edit */
+
+.edit-div {
+  display: flex;
+  flex-direction: column;
+}
+
+.edit-btn {
+  width: 3rem;
+  margin: 5px auto;
+  border-radius: 15px;
+}
+
+.switch {
+  margin-top: 15px;
 }

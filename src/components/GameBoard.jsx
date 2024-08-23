@@ -70,14 +70,22 @@ function GameBoard({ counter, setCounter, checked }) {
         ) {
           setTail([]);
           setCounter(0);
-          setDirection({ x: 0, y: 0 });
           setPosition({
             x: 200,
             y: 200,
           });
+          alert("Game over :(");
+          return prevDirection;
         }
 
-        return newDirection;
+        if (
+          newDirection.x !== prevDirection.x ||
+          newDirection.y !== prevDirection.y
+        ) {
+          return newDirection;
+        }
+
+        return prevDirection;
       });
     };
 
@@ -86,7 +94,7 @@ function GameBoard({ counter, setCounter, checked }) {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [direction, position]);
+  }, [tail, speed]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -103,12 +111,18 @@ function GameBoard({ counter, setCounter, checked }) {
         };
       });
 
+      /* If provjere */
+
       //Ova funkcija je po meni jako zahtjevna jer uvijek newTail.pop spriječava rast repa u nedogled
+
+      //Kako se funkcija gameLoop izvršava, svaki svojim izvršavanjem stvorila bi novi kvadratić. Tu stavljamo if provjeru koja spriječava rast repa tako što prati counter ondosno koliko je hrane zmijica pojela
       setTail((prevTail) => {
         const newTail = [{ x: position.x, y: position.y }, ...prevTail];
         if (newTail.length > counter) {
           newTail.pop();
         }
+
+        //Provjera jel se dijelovi repa poklapaju sa hranom, ako da onda premjesti hranu
 
         let overlap = newTail.some(
           (segment) => segment.x === food.x && segment.y === food.y
@@ -127,6 +141,8 @@ function GameBoard({ counter, setCounter, checked }) {
         return newTail;
       });
 
+      //Provjera jeli se zmija zabila u svoja tijelo
+
       tail.map((segment) => {
         if (
           position.x < segment.x + squareSize &&
@@ -141,13 +157,12 @@ function GameBoard({ counter, setCounter, checked }) {
             x: 200,
             y: 200,
           });
+          alert("Game over :(");
         }
       });
     };
 
-    /* If provjere */
-
-    // Provjera jel igrač udario u rub ploče
+    // Provjera jel zmija udarila u rub ploče
     if (
       position.x < 0 ||
       position.x > canvas.width - squareSize ||
@@ -161,9 +176,10 @@ function GameBoard({ counter, setCounter, checked }) {
         y: 200,
       });
       setTail([]);
+      alert("Game over :(");
     }
 
-    //Provjera jel kocka od igrača preklapa sa kockom hrane
+    //Provjera jel kocka od zmije preklapa sa kockom hrane
     if (
       position.x < food.x + squareSize &&
       position.x + squareSize > food.x &&
@@ -199,6 +215,8 @@ function GameBoard({ counter, setCounter, checked }) {
     });
 
     // Mislio sam da se možda može samo na kraju pozvati funkcija gameLoop() i da će ju dependency list od useEffecta(npr [position]) osvježavati ali zbog prebrzog render aplikacija je počela divljati
+
+    // Easy/Hard mode
 
     if (checked) {
       const intervalId = setInterval(gameLoop, 1000 / 30); // 30 FPS

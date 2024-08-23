@@ -6,17 +6,24 @@ import Player from "./components/Player";
 const App = () => {
   const [counter, setCounter] = useState(0);
   const [playerName, setPlayerName] = useState("Mile");
-  const [best, setBest] = useState(0);
+  const [best, setBest] = useState(() => {
+    const newBest = localStorage.getItem("best");
+    return newBest ? JSON.parse(newBest) : { player: playerName, score: 0 };
+  });
   const [checked, setChecked] = useState(false);
 
   useEffect(() => {
-    if (counter > best) {
-      setBest(counter);
+    if (counter > best.score) {
+      setBest((prevBest) => ({
+        ...prevBest,
+        score: counter,
+      }));
     }
-
-    localStorage.setItem("player", playerName);
-    localStorage.setItem("hiscore", best);
   }, [counter]);
+
+  useEffect(() => {
+    localStorage.setItem("best", JSON.stringify(best));
+  }, [best]);
 
   return (
     <>

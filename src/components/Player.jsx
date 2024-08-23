@@ -2,7 +2,14 @@ import React, { useState } from "react";
 import { FaReact } from "react-icons/fa";
 import { Switch } from "@mui/material";
 
-const Player = ({ counter, playerName, setPlayerName, setChecked }) => {
+const Player = ({
+  counter,
+  playerName,
+  setPlayerName,
+  setChecked,
+  checked,
+  best,
+}) => {
   const [isEditable, setIsEditable] = useState(false);
 
   const handleEditSave = () => {
@@ -37,16 +44,20 @@ const Player = ({ counter, playerName, setPlayerName, setChecked }) => {
         </div>
       ) : (
         <div className="edit-div">
-          <p className="player">Player:{playerName}</p>
+          <p className="player">Player: {playerName}</p>
           <button className="edit-btn" onClick={handleEditSave}>
             Edit
           </button>
         </div>
       )}
-      <p className="score">Score:{counter}</p>
-      <p className="hi-score">Hi-score:</p>
-
-      <Switch onChange={handleChecked} />
+      <p className="score">Score: {counter}</p>
+      <p className="hi-score">
+        Hi-score:{playerName} {best.score}
+      </p>
+      <div className="switch">
+        {checked ? "Hard" : "Easy"}
+        <Switch onChange={handleChecked} />
+      </div>
     </div>
   );
 };

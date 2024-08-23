@@ -10,3 +10,5 @@ ako mi je inicijani position 200 i direction na +10 npr, opet sve ispadne isto, 
 Local storage:
 
     -treba mi funkcija koja će prije game overa dohvatiti local storage, usporediti countere i ispisati hi score
+
+    - mozda da u useeffectu napravim f-ju koja ce prvo dohvatiti LS i vidit koji je najbolji score, nakon toga ga usporediti s counterom i ako je counter veći od onog is LS onda postaviti novi
