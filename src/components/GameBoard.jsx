@@ -75,17 +75,21 @@ function GameBoard({ counter, setCounter, checked }) {
             y: 200,
           });
           alert("Game over :(");
-          return prevDirection;
+          return { x: 0, y: 0 };
         }
+
+        /* Moras predviditi svaki dogadaj koji se moze dogoditi s tipkama. Prvi if se moze dogoditi samo kad je duzina repa 0, sve ostalo ce rezultirati game overom, else ce ako je 
+        novi smjer isti starom vratiti stari i nece mi se dogoditi bug kad stisnem isti smjer i drzim da mi se zmijica zaustavi, a ne mogu to staviti kao jedini if necu moci micati 
+        zmijicu s pocetne pozicije */
 
         if (
           newDirection.x !== prevDirection.x ||
           newDirection.y !== prevDirection.y
         ) {
           return newDirection;
+        } else {
+          return prevDirection;
         }
-
-        return prevDirection;
       });
     };
 
